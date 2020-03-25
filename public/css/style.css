@@ -1,0 +1,27 @@
+html, body {
+  height: 100%;
+}
+body {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+.launch {
+  position: relative;
+  top: 50%;
+  transform: translateY(calc(-50% - 2.5em));
+  margin: 0 auto;
+  width: 30em;
+}
+.launch img {
+  display:block;
+  margin-top: -2.5em;
+  width: 30em;
+}
+.launch small {
+  font-weight: bold;
+  font-size: 1.15em;
+}
+.launch p {
+  text-align: center;
+}

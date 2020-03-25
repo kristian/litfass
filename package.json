@@ -1,0 +1,54 @@
+{
+  "name": "litfass",
+  "version": "1.0.0",
+  "description": "A library for advertising displays",
+  "keywords": [
+    "advertising",
+    "ads",
+    "display",
+    "kiosk",
+    "display",
+    "poster"
+  ],
+  "author": {
+    "name": "Kristian Kraljic",
+    "email": "kris@kra.lc",
+    "url": "https://kra.lc/"
+  },
+  "license": "MIT",
+  "main": "litfass.js",
+  "files": [
+    "bin/",
+    "config/",
+    "public/",
+    "views/",
+    "app.js",
+    "autogypi.json",
+    "binding.gyp",
+    "display.cc",
+    "display.h",
+    "schedule.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kristian/litfass.git"
+  },
+  "scripts": {
+    "autogypi": "autogypi",
+    "node-gyp": "node-gyp",
+    "install": "autogypi --init-gyp -p nbind -s display.cc && node-gyp configure build",
+    "start": "node ./bin/start"
+  },
+  "dependencies": {
+    "autogypi": "^0.2.2",
+    "config": "^3.3.0",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "js-yaml": "^3.13.1",
+    "nbind": "^0.3.15",
+    "node-gyp": "^6.1.0",
+    "pug": "^2.0.4",
+    "puppeteer": "^2.1.1"
+  }
+}
