@@ -1,6 +1,6 @@
 {
   "name": "litfass",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A library for advertising displays",
   "keywords": [
     "advertising",
@@ -16,6 +16,7 @@
     "url": "https://kra.lc/"
   },
   "license": "MIT",
+  "bin": "./bin/start",
   "main": "litfass.js",
   "files": [
     "bin/",
@@ -42,9 +43,8 @@
   "dependencies": {
     "autogypi": "^0.2.2",
     "config": "^3.3.0",
-    "debug": "~2.6.9",
     "express": "~4.16.1",
-    "http-errors": "~1.6.3",
+    "http-errors": "^1.7.3",
     "js-yaml": "^3.13.1",
     "nbind": "^0.3.15",
     "node-gyp": "^6.1.0",
