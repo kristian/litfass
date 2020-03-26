@@ -4,6 +4,7 @@ const nbind = require('nbind');
 const Display = nbind.init(__dirname).lib.Display;
 const sleep = time => new Promise(resolve => setTimeout(resolve, time));
 
+process.env["NODE_CONFIG_DIR"] = __dirname + "/config/";
 const config = require('config').get('litfass');
 const { scheduleIn } = require('./schedule');
 
