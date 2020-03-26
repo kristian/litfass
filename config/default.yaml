@@ -2,8 +2,8 @@
 litfass:
 # the first entry of this list is considered the "default", in case multiple displays are connected, add more entries to show different pages per screen
 - rotationSpeed: 10 # either the time (in seconds) to wait to rotate between pages, or an array of the same, to specify different wait intervals per page. defaults to 10 seconds
-  transitionAnimation: fade # a animation name, or an object with name / duration of the transition animation to show between different pages. available transition animations: none, fade, slideUp, slideLeft. defaults to fade, with a duration of 200ms
+  transitionAnimation: fade # a animation name, or an object with name / duration of the transition animation to show between different pages. available transition animations: none, fade, slideUp, slideLeft. defaults to fade, with a duration of 400ms
   pages: # a list of pages to rotate between
   - https://example.com
-  - https://github.com/kristian/litfass
+  - https://github.com/kristian/litfass#readme
   - https://kra.lc

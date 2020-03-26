@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 
 const nbind = require('nbind');
-const Display = nbind.init().lib.Display;
+const Display = nbind.init(__dirname).lib.Display;
 const sleep = time => new Promise(resolve => setTimeout(resolve, time));
 
 const config = require('config').get('litfass');
@@ -9,7 +9,7 @@ const { scheduleIn } = require('./schedule');
 
 const LAUNCH_TIMEOUT = 10e3, DEFAULT_ROTATION_SPEED = 5e3, DEFAULT_TRANSITION_ANIMATION = {
     name: 'fade',
-    duration: 200
+    duration: 400
 }, TRANSITION_ANIMATIONS = {
     none: null,
     fade: {
@@ -46,7 +46,6 @@ exports.start = async (app) => {
     
         // remember the page objects, we'll need them later on
         let page; pages.push(page = (await browser.pages())[0]);
-
 
         // if all pages / browser have been closed, exit litfaß
         function closeDisplay(display) {
