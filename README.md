@@ -40,7 +40,8 @@ The following settings are available in the configuration file:
     - *ignore*: If set Litfaß will ignore this display and will not start a browser on the specified display.
 - **launchTimeout**: The number of seconds Litfaß will display its slash / launch screen.
 - **browserOptions**: Options that will be merged into the launch options for Puppeteer / Chrome, e.g. handy in case you would like to specify an own *executablePath* for Chrome. *browserOptions* can also be set per display in the displays configuration.
-- **preparePages**: Litfaß will automatically attempt to prepare any page, before it is displayed. This setting can be used to specify if Litfaß should prepare the pages (*true* / *false*) and / or the number of pages to prepare in advance. The setting **preparationTime** will determine how much in advance Litfaß is going to attempt to load the next tab (default to 5 seconds).
+- **preparePages**: Litfaß will automatically attempt to prepare any page, before it is displayed. This setting can be used to specify if Litfaß should prepare the pages (`true` / `false`) and / or the number of pages to prepare in advance. The setting **preparationTime** will determine how much in advance Litfaß is going to attempt to load the next tab (default to 5 seconds).
+- **watchNumberOfDisplays**: Litfaß will automatically watch for the number of displays connected. In case the number of display changes, Litfaß will restart and show browsers on the newly connected displays. Can be turned off by setting this property to `false`.
 
 By default the `displays` configuration section contains only one element. This causes the same rotation of pages to be displayed on all connected displays. Define multiple entries in the `displays` section, where each entry corresponds to one display connected. To ignore a display use `ignore: true`.
 

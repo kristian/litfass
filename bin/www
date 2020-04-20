@@ -87,3 +87,5 @@ function onListening() {
   process.emit('litfass::serverStarted', addr)
   debug('Listening on ' + bind);
 }
+
+module.exports = server;

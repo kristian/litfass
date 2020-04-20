@@ -1,31 +1,19 @@
 "use strict";
 
+process.env["NODE_CONFIG_DIR"] = __dirname + "/config/";
+
 const puppeteer = require('puppeteer');
 
 const nbind = require('nbind');
 const Display = nbind.init(__dirname).lib.Display;
 
-process.env["NODE_CONFIG_DIR"] = __dirname + "/config/";
-const { sleep, scheduleIn } = require('./schedule');
-
+const Scheduler = require('./scheduler');
 const merge = require('deepmerge')
-
-const silentImmediate = (asyncCallback, errorCallback) => {
-    setImmediate(async () => {
-        try { await asyncCallback(); } 
-        catch(error) {
-            // catch any errors (silently)
-            if (errorCallback) {
-                errorCallback(error);
-            }
-        }
-    })
-};
 
 const DEFAULT_LAUNCH_TIMEOUT = 10, DEFAULT_PREPARATION_TIME = 5, DEFAULT_AIR_TIME = 10, DEFAULT_TRANSITION_ANIMATION = {
     name: 'fade',
     duration: 400
-}, TRANSITION_ANIMATIONS = {
+}, WATCH_DISPLAYS_TIMEOUT = 10 * 1e3 /* every 10 seconds */, TRANSITION_ANIMATIONS = {
     none: null,
     fade: {
         out: 'opacity: 0; transition: opacity @durationms ease-in;',
@@ -42,6 +30,18 @@ const DEFAULT_LAUNCH_TIMEOUT = 10, DEFAULT_PREPARATION_TIME = 5, DEFAULT_AIR_TIM
         after: 'transform: translateX(100%);',
         in: 'transform: translateX(0); transition: transform @durationms ease-out;'
     }
+};
+
+const silentImmediate = (asyncCallback, errorCallback) => {
+    setImmediate(async () => {
+        try { await asyncCallback(); } 
+        catch(error) {
+            // catch any errors (silently)
+            if (errorCallback) {
+                errorCallback(error);
+            }
+        }
+    })
 };
 
 const animate = (page, ...animations) => {
@@ -66,6 +66,7 @@ exports.start = async (app) => {
     config.launchTimeout = ((config.launchTimeout | 0) || DEFAULT_LAUNCH_TIMEOUT) * 1e3; // normalize to milliseconds
     config.preparePages = 'preparePages' in config ? config.preparePages : true; // by default prepare one page in advance
     config.preparationTime = Math.max(( config.preparationTime | 0 ) || DEFAULT_PREPARATION_TIME, 0) * 1e3; // normalize to milliseconds
+    config.watchNumberOfDisplays = 'watchNumberOfDisplays' in config ? !!config.watchNumberOfDisplays : true; // detect if the number of displays has changed
 
     // check if there is at least one display defined
     if (!Array.isArray(config.displays)) {
@@ -73,6 +74,9 @@ exports.start = async (app) => {
     } else if(!config.displays.length) {
         throw new Error(`Litfaß needs at least one display configured`);
     }
+
+    // create a scheduler, which can be closed when litfaß exists
+    const scheduler = new Scheduler(), sleep = scheduler.sleep.bind(scheduler);
 
     // create browsers for each display
     const displays = Display.getDisplays();
@@ -124,7 +128,7 @@ exports.start = async (app) => {
         }
 
         // launch one browser per display
-        const browser = display.browser = await puppeteer.launch(merge.all([config.browserOptions, display.browserOptions, {
+        const browser = display.browser = await puppeteer.launch(merge.all([config.browserOptions || {}, display.browserOptions || {}, {
             headless: false,
             defaultViewport: null, /* do not set any viewport => full screen */
             ignoreDefaultArgs: ['--enable-automation'],
@@ -139,12 +143,14 @@ exports.start = async (app) => {
             // if the browser is still connected, close it (as only one page was closed)
             if (browser.isConnected()) {
                 await browser.close();
+                return; // we'll be called again by the disconnected event
             }
 
+            // as soon as all displays are closed, stop any open schedules / sleep timers
+            // this causes the original start promise to resolve if we are not restarting
             display.closed = true;
             if(!displays.some(display => !display.closed)) {
-                // all displays have been closed, exit the process
-                process.exit(0);
+                scheduler.close();
             }
         } browser.on('disconnected', closeDisplay);
         
@@ -168,32 +174,55 @@ exports.start = async (app) => {
     }));
 
     // start the rotation for each display
-    await Promise.all(displays.map(async (display, index) => { for(const transitionAnimation = display.transitionAnimation;;) {
-        // check if the browser for this display is still connected
-        if (display.ignore || !display.browser.isConnected()) {
-            break; // if not exit the rotation for this display
+    const rotations = displays.map(async (display, index) => {
+        for(const transitionAnimation = display.transitionAnimation;;) {
+            // check if the browser for this display is still connected
+            if (display.ignore || !display.browser.isConnected()) {
+                break; // if not exit the rotation for this display
+            }
+
+            // increment the current page count and get the current / next page object to display
+            const page = display.launch ? { airTime: config.launchTimeout } :
+                display.pages[display.currentPage = ++display.currentPage % display.pages.length],
+            nextPage = display.pages[(display.currentPage + 1) % display.pages.length];
+            delete display.launch; // on the first iteration displaying the launch page will NOT increment the page count
+
+            // also get the currently active and next in line browser tab to use
+            const tab = display.tabs[display.currentTab = ++display.currentTab % display.tabs.length],
+            nextTab = display.tabs[(display.currentTab + 1) % display.tabs.length];
+            const loadNextTab = wait => animate(nextTab, wait ? () => sleep(wait) : null, () => 
+                nextTab.goto(nextPage.url, { waitUntil: 'domcontentloaded' }), transitionAnimation.after);
+            
+            // if pages should be prepared, load the next tab already shortly before we switch to it
+            config.preparePages && loadNextTab(page.airTime - config.preparationTime);
+
+            // all displays that are scheduled to show a page at the same time, should be doing so as synchronized as possible, so use a flaky scheduler here
+            await scheduler.scheduleIn(page.airTime, async () => {
+                animate(tab, transitionAnimation.out);
+                await sleep(transitionAnimation.halfDuration); // wait here, as the offset was subtracted from the schedule time before
+                animate(nextTab, () => config.preparePages ? nextTab.bringToFront() : loadNextTab(), transitionAnimation.in, config.preparePages ? () => tab.goto('about:blank') : null);
+            }, -transitionAnimation.halfDuration /* offset, so we stay as close to the air time as possible */);
         }
+    }).map(promise => promise.catch(() => undefined)); // do not consider it a problem if any single display fails, just resolve the promise!
 
-        // increment the current page count and get the current / next page object to display
-        const page = display.launch ? { airTime: config.launchTimeout } :
-            display.pages[display.currentPage = ++display.currentPage % display.pages.length],
-          nextPage = display.pages[(display.currentPage + 1) % display.pages.length];
-        delete display.launch; // on the first iteration displaying the launch page will NOT increment the page count
+    // regularly check if the number of displays has changed, this is especially helpful, e.g.
+    // in case some displays are turned off in the afternoon and turned on again in the morning
+    await Promise.all([...rotations, config.watchNumberOfDisplays ? (async () => {
+        for(;;) {
+            try {
+                await sleep(WATCH_DISPLAYS_TIMEOUT);
+            } catch(interrupt) {
+                return; // in case the sleep was interrupted, the scheduler was closed!
+            }
 
-        // also get the currently active and next in line browser tab to use
-        const tab = display.tabs[display.currentTab = ++display.currentTab % display.tabs.length],
-          nextTab = display.tabs[(display.currentTab + 1) % display.tabs.length];
-        const loadNextTab = wait => animate(nextTab, wait ? () => sleep(wait) : null, () => 
-            nextTab.goto(nextPage.url, { waitUntil: 'domcontentloaded' }), transitionAnimation.after);
-        
-        // if pages should be prepared, load the next tab already shortly before we switch to it
-        config.preparePages && loadNextTab(page.airTime - config.preparationTime);
-
-        // all displays that are scheduled to show a page at the same time, should be doing so as synchronized as possible, so use a flaky scheduler here
-        await scheduleIn(page.airTime, async () => {
-            animate(tab, transitionAnimation.out);
-            await sleep(transitionAnimation.halfDuration); // wait here, as the offset was subtracted from the schedule time before
-            animate(nextTab, () => config.preparePages ? nextTab.bringToFront() : loadNextTab(), transitionAnimation.in, config.preparePages ? () => tab.goto('about:blank') : null);
-        }, -transitionAnimation.halfDuration /* offset, so we stay as close to the air time as possible */);
-    }}));
+            // in case displays have been attached / detached, exit the loop, we'll start a new one soon!
+            if (displays.length !== Display.getDisplays().length) {
+                break;
+            }
+        }
+    
+        // in case a change in the number of displays was detected, close the current displays and restart litfaß
+        await Promise.all(displays.map(display.browser.close()));
+        await exports.start(app); // adds to the promise chain
+    })(): null]);
 };
