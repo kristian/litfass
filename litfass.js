@@ -87,6 +87,11 @@ exports.start = async (app) => {
     // create browsers for each display
     const displays = Display.getDisplays();
     await Promise.all(displays.map(async (display, index) => {
+        if(display.ignore) {
+            // ignore this display for the litfaß display
+            return;
+        }
+
         // normalize the configuration for this display
         Object.assign(display, config.displays[index] || config.displays[0], {
             launch: true, currentPage: -1, currentTab: -1 });
@@ -96,9 +101,6 @@ exports.start = async (app) => {
             throw new Error(`Display configuration ${index} needs a 'pages' array`);
         } else if(!display.pages.length) {
             throw new Error(`Display configuration ${index} needs at least one page to display`);
-        } else if(display.ignore) {
-            // ignore this display for the litfaß display
-            return;
         }
 
         // normalize the rotationSpeed and URL into an array of page objects
