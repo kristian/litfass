@@ -137,7 +137,7 @@ exports.start = async (app) => {
             defaultViewport: null, /* do not set any viewport => full screen */
             ignoreDefaultArgs: ['--enable-automation'],
             args: [
-                //'--kiosk' /* launch in full-screen */,
+                '--kiosk' /* launch in full-screen */,
                 `--window-position=${display.left},${display.top}`
             ]
         }));
