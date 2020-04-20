@@ -5,6 +5,7 @@ const litfass = require('../litfass');
 // register a event listener starting to litfaß, as soon as the server is started
 process.on('litfass::serverStarted', addr => {
   litfass.start(`http://localhost:${addr.port}/`).catch(err => {
+    console.error(err);
     process.exit(1);
   });
 });

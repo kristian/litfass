@@ -33,11 +33,17 @@ In the `litfass` directory you'll find a `/config` sub-folder containing a `defa
 
 The following settings are available in the configuration file:
 
-- **pages**: An array of URLs to rotate the display between (e.g. https://example.com and https://kra.lc/ will rotate between those two pages in the set `rotationSpeed`)
-- **rotationSpeed**: The number of seconds each page should be displayed. In case some pages should be displayed longer than others, you can also specify an array. By default a page is displayed for 10 seconds before being rotated.
-- **transitionAnimation**: Litfaß supports transitioning between multiple pages when rotating. The following animations are supported `none`, `fade`, `slideUp`, `slideLeft`, defaults to `fade`. You can also use an object `{ name: ..., duration: ... }` to specify the speed of the transition in milliseconds.
+- **launch**: An object to specify different launch options for Litfaß:
+    - *time*: The number of seconds Litfaß will display its slash / launch screen
+    - *options*: Options merged into the launch options for Puppeteer / Chrome, e.g. handy in case you would like to specify an own *executablePath* for Chrome.
+- **displays**: An array of displays, to specify different rotations on different displays connected. In case more displays are connected than specified here, the first display configuration will be used.
+    - *pages*: An array of URLs to rotate the display between (e.g. https://example.com and https://kra.lc/ will rotate between those two pages in the set `rotationSpeed`)
+    - *rotationSpeed*: The number of seconds each page should be displayed. In case some pages should be displayed longer than others, you can also specify an array. By default a page is displayed for 10 seconds before being rotated.
+    - *transitionAnimation*: Litfaß supports transitioning between multiple pages when rotating. The following animations are supported `none`, `fade`, `slideUp`, `slideLeft`, defaults to `fade`. You can also use an object `{ name: ..., duration: ... }` to specify the speed of the transition in milliseconds.
+    - *ignore*: If set Litfaß will ignore this display and will not start a browser on the specified display.
+- **pagePreload**: Litfaß will automatically attempt to preload any page, before it is displayed. This object can be used to specify the number of buffered pages to use (*numberOfPages*) and the time the page should be started loading in advance (*preloadTime*).
 
-By default the `litfass` configuration section contains only one element. This causes the same rotation of pages to be displayed on all connected displays. Define multiple entries in the `litfass` section, where each entry corresponds to one display connected. To ignore a display use `ignore: true`.
+By default the `displays` configuration section contains only one element. This causes the same rotation of pages to be displayed on all connected displays. Define multiple entries in the `displays` section, where each entry corresponds to one display connected. To ignore a display use `ignore: true`.
 
 ## Author
 

@@ -1,6 +1,6 @@
 {
   "name": "litfass",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A library for advertising displays",
   "keywords": [
     "advertising",
@@ -43,6 +43,7 @@
   "dependencies": {
     "autogypi": "^0.2.2",
     "config": "^3.3.0",
+    "deepmerge": "^4.2.2",
     "express": "~4.16.1",
     "http-errors": "^1.7.3",
     "js-yaml": "^3.13.1",
