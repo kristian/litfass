@@ -22,10 +22,7 @@ const silentImmediate = (asyncCallback, errorCallback) => {
     })
 };
 
-const DEFAULT_LAUNCH_TIME = 10, DEFAULT_PAGE_PRELOAD = {
-    numberOfPages: 2,
-    preloadTime: 5,
-}, DEFAULT_AIR_TIME = 5, DEFAULT_TRANSITION_ANIMATION = {
+const DEFAULT_LAUNCH_TIMEOUT = 10, DEFAULT_PREPARATION_TIME = 5, DEFAULT_AIR_TIME = 10, DEFAULT_TRANSITION_ANIMATION = {
     name: 'fade',
     duration: 400
 }, TRANSITION_ANIMATIONS = {
@@ -66,41 +63,34 @@ exports.start = async (app) => {
     const config = merge.all([require('config').get('litfass') || {}]);
 
     // normalize the configuration
-    config.launch = config.launch || {};
-    config.launch.time = ((config.launch.time | 0) || DEFAULT_LAUNCH_TIME) * 1e3; // normalize to milliseconds
-    config.launch.page = { url: app, airTime: config.launch.time }; // build an artificial launch page configuration
-    config.pagePreload = config.pagePreload || {};
-    config.pagePreload.numberOfPages = Math.max(( config.pagePreload.numberOfPages | 0 ) || DEFAULT_PAGE_PRELOAD.numberOfPages, 1);
-    config.pagePreload.preloadTime = Math.max(( config.pagePreload.preloadTime | 0 ) || DEFAULT_PAGE_PRELOAD.preloadTime, 0) * 1e3; // normalize to milliseconds
-
-    // page preloading can be turned off, by setting the number of preload pages to one. this is helpful for
-    // low-resource machines, but we'll need to treat the preloading logic differently for this corner case
-    const shouldPreload = config.pagePreload.numberOfPages > 1;
+    config.launchTimeout = ((config.launchTimeout | 0) || DEFAULT_LAUNCH_TIMEOUT) * 1e3; // normalize to milliseconds
+    config.preparePages = 'preparePages' in config ? config.preparePages : true; // by default prepare one page in advance
+    config.preparationTime = Math.max(( config.preparationTime | 0 ) || DEFAULT_PREPARATION_TIME, 0) * 1e3; // normalize to milliseconds
 
     // check if there is at least one display defined
     if (!Array.isArray(config.displays)) {
-        throw new Error(`Litfaß configuration needs a 'displays' array`);
+        throw new Error(`Litfaß needs a 'displays' array`);
     } else if(!config.displays.length) {
-        throw new Error(`Litfaß configuration needs at least one display`);
+        throw new Error(`Litfaß needs at least one display configured`);
     }
 
     // create browsers for each display
     const displays = Display.getDisplays();
     await Promise.all(displays.map(async (display, index) => {
-        if(display.ignore) {
-            // ignore this display for the litfaß display
-            return;
-        }
-
         // normalize the configuration for this display
         Object.assign(display, config.displays[index] || config.displays[0], {
             launch: true, currentPage: -1, currentTab: -1 });
 
+        // check if this display should be ignored by litfaß
+        if(display.ignore) {
+            return;
+        }
+        
         // check if the display has a pages array
         if (!Array.isArray(display.pages)) {
-            throw new Error(`Display configuration ${index} needs a 'pages' array`);
+            throw new Error(`Display ${index} needs a 'pages' array`);
         } else if(!display.pages.length) {
-            throw new Error(`Display configuration ${index} needs at least one page to display`);
+            throw new Error(`Display ${index} needs at least one page to display`);
         }
 
         // normalize the rotationSpeed and URL into an array of page objects
@@ -134,7 +124,7 @@ exports.start = async (app) => {
         }
 
         // launch one browser per display
-        const browser = display.browser = await puppeteer.launch(merge(config.launch.options, {
+        const browser = display.browser = await puppeteer.launch(merge.all([config.browserOptions, display.browserOptions, {
             headless: false,
             defaultViewport: null, /* do not set any viewport => full screen */
             ignoreDefaultArgs: ['--enable-automation'],
@@ -142,7 +132,7 @@ exports.start = async (app) => {
                 '--kiosk' /* launch in full-screen */,
                 `--window-position=${display.left},${display.top}`
             ]
-        }));
+        }]));
 
         // if all displays have been closed, exit litfaß
         async function closeDisplay() {
@@ -160,11 +150,11 @@ exports.start = async (app) => {
         
         // the browser will open with one page pre-loaded
         const firstTab = (await browser.pages())[0];
-        await firstTab.goto(config.launch.page.url);
+        await firstTab.goto(app); // passed in by ./bin/www
 
-        // open more pages (tabs) for preloading the page rotation
+        // open more pages (tabs) for preparing pages before rotation
         const additionalTabs = await Promise.all(Array.from({
-            length: config.pagePreload.numberOfPages - 1
+            length: config.preparePages | 0 // will work with positive numbers and booleans where true maps to 1
         }, async () => {
             // open the page and jump back to the launch screen immediately    
             let page = await browser.newPage();
@@ -185,24 +175,25 @@ exports.start = async (app) => {
         }
 
         // increment the current page count and get the current / next page object to display
-        const page = display.launch ? config.launch.page : display.pages[display.currentPage = ++display.currentPage % display.pages.length],
+        const page = display.launch ? { airTime: config.launchTimeout } :
+            display.pages[display.currentPage = ++display.currentPage % display.pages.length],
           nextPage = display.pages[(display.currentPage + 1) % display.pages.length];
         delete display.launch; // on the first iteration displaying the launch page will NOT increment the page count
 
         // also get the currently active and next in line browser tab to use
         const tab = display.tabs[display.currentTab = ++display.currentTab % display.tabs.length],
           nextTab = display.tabs[(display.currentTab + 1) % display.tabs.length];
-        const preloadNextTab = wait => animate(nextTab, wait ? () => sleep(wait) : null, () => 
+        const loadNextTab = wait => animate(nextTab, wait ? () => sleep(wait) : null, () => 
             nextTab.goto(nextPage.url, { waitUntil: 'domcontentloaded' }), transitionAnimation.after);
         
-        // if pages should be preloaded, prepare the next tab shortly before we switch to it
-        shouldPreload && preloadNextTab(page.airTime - config.pagePreload.preloadTime);
+        // if pages should be prepared, load the next tab already shortly before we switch to it
+        config.preparePages && loadNextTab(page.airTime - config.preparationTime);
 
         // all displays that are scheduled to show a page at the same time, should be doing so as synchronized as possible, so use a flaky scheduler here
         await scheduleIn(page.airTime, async () => {
             animate(tab, transitionAnimation.out);
             await sleep(transitionAnimation.halfDuration); // wait here, as the offset was subtracted from the schedule time before
-            animate(nextTab, () => shouldPreload ? nextTab.bringToFront() : preloadNextTab(), transitionAnimation.in, shouldPreload ? () => tab.goto('about:blank') : null);
+            animate(nextTab, () => config.preparePages ? nextTab.bringToFront() : loadNextTab(), transitionAnimation.in, config.preparePages ? () => tab.goto('about:blank') : null);
         }, -transitionAnimation.halfDuration /* offset, so we stay as close to the air time as possible */);
     }}));
 };
