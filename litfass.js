@@ -222,7 +222,7 @@ exports.start = async (app) => {
         }
     
         // in case a change in the number of displays was detected, close the current displays and restart litfaß
-        await Promise.all(displays.map(display.browser.close()));
+        await Promise.all(displays.map(display => display.browser.close()));
         await exports.start(app); // adds to the promise chain
-    })(): null]);
+    })() : null]);
 };
