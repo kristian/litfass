@@ -1,11 +1,7 @@
 "use strict";
 
-process.env["NODE_CONFIG_DIR"] = __dirname + "/config/";
-
 const puppeteer = require('puppeteer');
-
-const nbind = require('nbind');
-const Display = nbind.init(__dirname).lib.Display;
+const getDisplays = require('bindings')('displays').get;
 
 const Scheduler = require('./scheduler');
 const merge = require('deepmerge')
@@ -79,7 +75,9 @@ exports.start = async (app) => {
     const scheduler = new Scheduler(), sleep = scheduler.sleep.bind(scheduler);
 
     // create browsers for each display
-    const displays = Display.getDisplays();
+    const displays = getDisplays().sort((displayA, displayB) =>
+        // sort all displays from top to bottom, left to right (there is no need to compare for equal, as two displays must be at a different position!)
+        displayA.top < displayB.top || displayA.left < displayB.left ? -1 : 1);
     await Promise.all(displays.map(async (display, index) => {
         // normalize the configuration for this display
         Object.assign(display, config.displays[index] || config.displays[0], {
@@ -216,7 +214,7 @@ exports.start = async (app) => {
             }
 
             // in case displays have been attached / detached, exit the loop, we'll start a new one soon!
-            if (displays.length !== Display.getDisplays().length) {
+            if (displays.length !== getDisplays().length) {
                 break;
             }
         }
