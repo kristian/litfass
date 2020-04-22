@@ -19,8 +19,8 @@ NODE_MODULE(displays, init)
 
 BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
   v8::Local<v8::Object> display = Nan::New<v8::Object>();
-  Nan::Set(display, Nan::New("left").ToLocalChecked(), Nan::New(lprcMonitor->left));
   Nan::Set(display, Nan::New("top").ToLocalChecked(), Nan::New(lprcMonitor->top));
+  Nan::Set(display, Nan::New("left").ToLocalChecked(), Nan::New(lprcMonitor->left));
   Nan::Set(display, Nan::New("width").ToLocalChecked(), Nan::New(lprcMonitor->right - lprcMonitor->left));
   Nan::Set(display, Nan::New("height").ToLocalChecked(), Nan::New(lprcMonitor->bottom - lprcMonitor->top));
   

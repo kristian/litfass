@@ -76,8 +76,8 @@ exports.start = async (app) => {
 
     // create browsers for each display
     const displays = getDisplays().sort((displayA, displayB) =>
-        // sort all displays from top to bottom, left to right (there is no need to compare for equal, as two displays must be at a different position!)
-        displayA.top < displayB.top || displayA.left < displayB.left ? -1 : 1);
+        // sort all displays from top to bottom, left to right
+        displayA.top - displayB.top || displayA.left - displayB.left);
     await Promise.all(displays.map(async (display, index) => {
         // normalize the configuration for this display
         Object.assign(display, config.displays[index] || config.displays[0], {
