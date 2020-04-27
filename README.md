@@ -1,6 +1,6 @@
 [<img width="300" alt="Litfaß Logo" src="https://raw.githubusercontent.com/kristian/litfass/master/public/img/litfass.svg?sanitize=true">](https://github.com/kristian/litfass)
 
-A browser-based digital advertising column / display / pole / poster / kiosk with support for multiple displays. Use the `default.yaml` file in the `/config` folder to define pages and Litfaß will present them in rotation on all connected displays.
+A browser-based digital advertising column / display / pole / poster / kiosk with support for multiple displays. Use a `default.yaml` configuration file in a `./config` folder to define pages and Litfaß will present them in rotation on all connected displays.
 
 The name of this library was inspired by the German name of advertising columns "*Litfaßsäule*" and its inventor [Ernst Litfaß](https://en.wikipedia.org/wiki/Ernst_Litfa%C3%9F).
 
@@ -12,7 +12,7 @@ This is a [Node.js](https://nodejs.org/en/) module available through the
 Before installing, [download and install Node.js](https://nodejs.org/en/download/).
 Node.js 12 is recommended.
 
-**Important Note:** An own native module ([display.cc](display.cc)) is used to determine all connected displays and their display coordinates, in order to start the browsers on each display. This module is currently *only* available for Windows. Thus this module will likely fail to install on any other OS! Please feel free to contribute and issue a PR on GitHub anytime.
+**Important Note:** An own native module ([displays.cc](displays.cc)) is used to determine all connected displays and their display coordinates, in order to start the browsers on each display. This module is currently *only* available for Windows. Thus this module will likely fail to install on any other OS! Please feel free to contribute and issue a PR on GitHub anytime.
 
 To run Litfaß, use the npx command:
 
