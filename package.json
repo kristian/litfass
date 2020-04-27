@@ -36,6 +36,7 @@
     "type": "git",
     "url": "https://github.com/kristian/litfass.git"
   },
+  "homepage": "https://github.com/kristian/litfass#readme",
   "scripts": {
     "start": "node ./bin/start",
     "configure": "node-gyp configure",
