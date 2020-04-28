@@ -1,7 +1,7 @@
 "use strict";
 
 const puppeteer = require('puppeteer');
-const getDisplays = require('bindings')('displays').get;
+const getDisplays = require('displays');
 
 const Scheduler = require('./scheduler');
 const merge = require('deepmerge')

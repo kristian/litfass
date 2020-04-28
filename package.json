@@ -1,6 +1,6 @@
 {
   "name": "litfass",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "A library for advertising displays",
   "keywords": [
     "advertising",
@@ -27,9 +27,6 @@
     "public/",
     "views/",
     "app.js",
-    "binding.gyp",
-    "displays.cc",
-    "displays.h",
     "scheduler.js"
   ],
   "repository": {
@@ -38,24 +35,17 @@
   },
   "homepage": "https://github.com/kristian/litfass#readme",
   "scripts": {
-    "start": "node ./bin/start",
-    "configure": "node-gyp configure",
-    "build": "node-gyp build",
-    "install": "node-gyp rebuild"
+    "start": "node ./bin/start"
   },
   "gypfile": true,
   "dependencies": {
-    "bindings": "^1.5.0",
     "config": "^3.3.0",
     "deepmerge": "^4.2.2",
+    "displays": "^1.1.2",
     "express": "~4.16.1",
     "http-errors": "^1.7.3",
     "js-yaml": "^3.13.1",
     "pug": "^2.0.4",
-    "puppeteer": "^2.1.1",
-    "nan": "^2.14.1"
-  },
-  "devDependencies": {
-    "node-gyp": "^6.1.0"
+    "puppeteer": "^2.1.1"
   }
 }

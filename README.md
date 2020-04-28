@@ -1,4 +1,4 @@
-[<img width="300" alt="Litfaß Logo" src="https://raw.githubusercontent.com/kristian/litfass/master/public/img/litfass.svg?sanitize=true">](https://github.com/kristian/litfass)
+[<img width="300" alt="Litfaß Logo" src="https://raw.githubusercontent.com/kristian/litfass/master/public/img/litfass.svg?sanitize=true">](https://github.com/kristian/litfass#readme)
 
 A browser-based digital advertising column / display / pole / poster / kiosk with support for multiple displays. Use a `default.yaml` configuration file in a `./config` folder to define pages and Litfaß will present them in rotation on all connected displays.
 
@@ -12,12 +12,9 @@ This is a [Node.js](https://nodejs.org/en/) module available through the
 Before installing, [download and install Node.js](https://nodejs.org/en/download/).
 Node.js 12 is recommended.
 
-**Important Note:** An own native module ([displays.cc](displays.cc)) is used to determine all connected displays and their display coordinates, in order to start the browsers on each display. This module is currently *only* available for Windows. Thus this module will likely fail to install on any other OS! Please feel free to contribute and issue a PR on GitHub anytime.
-
-To run Litfaß, use the npx command:
+To run Litfaß, use can also use the npx command:
 
 ```bash
-$ npm install -g npx litfass
 $ npx litfass start
 ```
 
@@ -29,7 +26,7 @@ To configure the Litfaß display, go to the `node_modules/litfass` folder. In ca
 $ npm root -g
 ```
 
-In the `litfass` directory you'll find a `/config` sub-folder containing a `default.yaml` configuration file. The configuration is explained in the YAML file. Check out the [config package](https://www.npmjs.com/package/config) for more details on the configuration formats supported.
+In the `litfass` directory you'll find a `config` sub-folder containing a `default.yaml` configuration file. The configuration is explained in the YAML file. Check out the [config package](https://www.npmjs.com/package/config) for more details on the configuration formats supported. Copy the `default.yaml` to a config folder from where you execute Litfaß to create an own configuration.
 
 The following settings are available in the configuration file:
 
