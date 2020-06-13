@@ -299,14 +299,7 @@ concat-stream@^1.6.2:
     readable-stream "^2.2.2"
     typedarray "^0.0.6"
 
-config-uncached@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/config-uncached/-/config-uncached-1.0.2.tgz#6bd569fe9b085d235479f785ec9792fb5997968b"
-  integrity sha1-a9Vp/psIXSNUefeF7JeS+1mXlos=
-  dependencies:
-    config "~1.14.0"
-
-config@3.3.1, config@^3.3.1, config@~1.14.0:
+config@3.3.1, config@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/config/-/config-3.3.1.tgz#b6a70e2908a43b98ed20be7e367edf0cc8ed5a19"
   integrity sha512-+2/KaaaAzdwUBE3jgZON11L1ggLLhpf2FsGrfqYFHZW22ySGv/HqYIXrBwKKvn+XZh1UBUjHwAcrfsSkSygT+Q==

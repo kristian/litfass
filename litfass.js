@@ -65,7 +65,7 @@ module.exports = new (class Litfass extends EventEmitter {
             throw new Error(`Litfaß is already running`);
         } else if (!(this.settings = settings).ignoreConfiguration) {
             process.env.SUPPRESS_NO_CONFIG_WARNING = true;
-            const config = require('config-uncached')(true);
+            const config = require('config');
     
             // read & resolve the configuration and create a deep copy
             config.util.setModuleDefaults('litfass', settings);
