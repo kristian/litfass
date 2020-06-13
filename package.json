@@ -1,6 +1,6 @@
 {
   "name": "litfass",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "A library for advertising displays",
   "keywords": [
     "advertising",
@@ -39,7 +39,8 @@
   },
   "gypfile": true,
   "dependencies": {
-    "config": "^3.3.0",
+    "config": "^3.3.1",
+    "config-uncached": "^1.0.2",
     "deepmerge": "^4.2.2",
     "displays": "^1.1.2",
     "express": "~4.16.1",
@@ -47,5 +48,8 @@
     "js-yaml": "^3.13.1",
     "pug": "^2.0.4",
     "puppeteer": "^2.1.1"
+  },
+  "resolutions": {
+    "config": "3.3.1"
   }
 }
