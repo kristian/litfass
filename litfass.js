@@ -2,6 +2,7 @@
 
 const { EventEmitter } = require('events');
 
+const path = require('path');
 const puppeteer = require('puppeteer');
 const getDisplays = require('displays');
 
@@ -56,6 +57,17 @@ const animate = (page, ...animations) => {
     }).catch(error => { /* do nothing */ });
 };
 
+const purgeConfig = () => {
+    const configDir = process.env.NODE_CONFIG_DIR || path.join(process.cwd(), 'config');      
+    for (var cacheFile in require.cache) {
+        if (cacheFile.includes(configDir)) {
+            delete require.cache[cacheFile];
+        }
+    }
+    
+    delete require.cache[require.resolve('config')];
+};
+
 module.exports = new (class Litfass extends EventEmitter {
     displays = [] // an array of displays after litfass was started
 
@@ -65,7 +77,7 @@ module.exports = new (class Litfass extends EventEmitter {
             throw new Error(`Litfaß is already running`);
         } else if (!(this.settings = settings).ignoreConfiguration) {
             process.env.SUPPRESS_NO_CONFIG_WARNING = true;
-            const config = require('config');
+            purgeConfig(); const config = require('config');
     
             // read & resolve the configuration and create a deep copy
             config.util.setModuleDefaults('litfass', settings);
